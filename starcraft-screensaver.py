@@ -83,6 +83,9 @@ class Marine:
 
         self.frame = 0
         self.shot_frame = 0
+        
+        self.pause = 0
+        self.pause_end = 3
 
         self.state = None
 
@@ -91,6 +94,12 @@ class Marine:
         self.pushed_lasers = 0
 
     def move(self, v_move=None):
+
+        if self.pause == self.pause_end:
+            self.pause = 0
+        else:
+            self.pause += 1
+            return
 
         self.frame += 1
         frame_image = self.marine_move[self.frame]
@@ -247,5 +256,5 @@ while True:
             if isinstance(shotlaser, ShotLaser):
                 shotlaser.move()
 
-    time.sleep(0.04)
+    time.sleep(0.01)
     win.update()
