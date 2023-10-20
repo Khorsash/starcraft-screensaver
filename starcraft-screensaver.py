@@ -2,11 +2,15 @@ import tkinter as tk
 import ctypes
 
 import time
-
 import os
 import platform
 
 import secrets
+
+import pygame
+
+
+pygame.init()
 
 
 if platform.system() == 'Windows':
@@ -85,7 +89,7 @@ class Marine:
         self.shot_frame = 0
         
         self.pause = 0
-        self.pause_end = 3
+        self.pause_end = 2
 
         self.state = None
 
@@ -206,6 +210,11 @@ canvas.pack(expand=True, fill=tk.BOTH)
 
 canvas.create_image((win.winfo_screenwidth()-2000)//2, (win.winfo_screenheight()-1200)//2, image=floor, anchor='nw')
 
+frames = [canvas.create_rectangle(0, 0, (win.winfo_screenwidth()-2000)//2, win.winfo_screenheight(), fill='black'),
+          canvas.create_rectangle(0, 0, win.winfo_screenwidth(), (win.winfo_screenheight()-1200)//2, fill='black'),
+          canvas.create_rectangle(2000+((win.winfo_screenwidth()-2000)//2), 0, win.winfo_screenwidth(), win.winfo_screenheight(), fill='black'),
+          canvas.create_rectangle(0, 1200+((win.winfo_screenheight()-1200)//2), win.winfo_screenwidth(), win.winfo_screenheight(), fill='black')]
+
 objects = {"marines":{}}
 
 marines = []
@@ -239,6 +248,17 @@ marine = Marine(857, 540, canvas=canvas, move_images=marine_move, shot_images=ma
 marines.append(marine)
 
 objects['marines'][marine.id] = []
+
+for rec_id in frames:
+    canvas.lift(rec_id)
+
+win.update()
+
+channel = pygame.mixer.Channel(0)
+
+music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
+
+channel.play(music)
 
 while True:
     for marine in marines:
