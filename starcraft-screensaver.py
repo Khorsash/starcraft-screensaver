@@ -87,9 +87,6 @@ class Marine:
 
         self.frame = 0
         self.shot_frame = 0
-        
-        self.pause = 0
-        # self.pause_end = 2
 
         self.state = None
 
@@ -213,12 +210,30 @@ floor = tk.PhotoImage(file="floor.png")
 canvas = tk.Canvas(win, bg='black')
 canvas.pack(expand=True, fill=tk.BOTH)
 
+marines_count = canvas.create_text(30, 30, text="Marines: 0", anchor='nw', fill='white', font=(None, 13))
+lasers_count = canvas.create_text(30, 60, text="Shot Lasers: 0", anchor='nw', fill='white', font=(None, 13))
+fps = canvas.create_text(30, 90, text="FPS: 0", anchor='nw', fill='white', font=(None, 13))
+
+def show_stats():
+    canvas.itemconfigure(marines_count, state='normal')
+    canvas.itemconfigure(lasers_count, state='normal')
+    canvas.itemconfigure(fps, state='normal')
+    win.bind("<F2>", lambda event: hide_stats())  
+
+def hide_stats():
+    canvas.itemconfigure(marines_count, state='hidden')
+    canvas.itemconfigure(lasers_count, state='hidden')
+    canvas.itemconfigure(fps, state='hidden')
+    win.bind("<F2>", lambda event: show_stats())  
+
+hide_stats()  
+
 x_start = (win.winfo_screenwidth()-2000)//2
 y_start = (win.winfo_screenheight()-1200)//2
 x_end = x_start + 2000
 y_end = y_start + 1200
 
-canvas.create_image(x_start, y_start, image=floor, anchor='nw')
+bg = canvas.create_image(x_start, y_start, image=floor, anchor='nw')
 
 borders = [canvas.create_rectangle(0, 0, x_start, win.winfo_screenheight(), fill='black'),
           canvas.create_rectangle(0, 0, win.winfo_screenwidth(), y_start, fill='black'),
@@ -250,6 +265,9 @@ channel.play(music)
 for rec_id in borders:
     canvas.lift(rec_id)
 
+last_time = time.time() 
+fr_count = 0
+
 while True:
     for marine in marines[:]:
         marine: Marine
@@ -260,11 +278,12 @@ while True:
         if marine.frame == 0 and random.choice([1, 0, 0, 0, 0, 0, 0, 0]) == 1:
             marine.start_shooting()
 
-        
+    lc = 0
     for shotlasers in list(objects['marines'].values()):
         for shotlaser in shotlasers:
             if isinstance(shotlaser, ShotLaser):
                 shotlaser.move()
+                lc += 1
     
     if random.choice([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == 1:
         marine = Marine(x_start-120, random.choice(possible_y), canvas=canvas, move_images=marine_move, shot_images=marine_shot)
@@ -272,8 +291,6 @@ while True:
         marines.append(marine)
 
         objects['marines'][marine.id] = []
-
-        print(len(marines))
 
     sorted_marines = sorted(marines, key=lambda m: m.coords[1])
         
@@ -283,6 +300,22 @@ while True:
     for rec_id in borders:
         canvas.lift(rec_id)
     
+    canvas.lift(marines_count)
+    canvas.lift(lasers_count)
+    canvas.lift(fps)
+
+    canvas.itemconfig(marines_count, text=f"Marines: {len(marines)}")
+    canvas.itemconfig(lasers_count, text=f"Lasers: {lc}")
+
+    current_time = time.time()
+    dt = current_time - last_time
+    fr_count += 1
+
+    if dt >= 0.3:
+        fps_count = fr_count / dt
+        canvas.itemconfig(fps, text=f"FPS: {round(fps_count)}")
+        fr_count = 0
+        last_time = current_time
 
     time.sleep(0.01)
     win.update()
