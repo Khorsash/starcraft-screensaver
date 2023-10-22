@@ -98,7 +98,6 @@ class Marine:
         self.pushed_lasers = 0
 
     def move(self, v_move=None):
-
         self.frame += 1
         frame_image = self.marine_move[self.frame]
         self.canvas.itemconfig(self.id, image=frame_image)
@@ -140,6 +139,9 @@ class Marine:
             self.coords[1] += v_speed
         else:
             self.canvas.move(self.id, h_speed, 0)
+
+        if self.coords[0] > win.winfo_screenwidth():
+            self.destroy()
 
     def stop(self):
         self.frame = 0
@@ -189,6 +191,15 @@ class Marine:
             self.state = None
             self.animate = self.move
 
+    def destroy(self):
+        for shotlaser in objects['marines'][self.id]:
+            shotlaser.destroy()
+
+        self.canvas.delete(self.id)
+
+        marines.remove(self)
+        del objects['marines'][self.id]
+
 
 win = tk.Tk()
 
@@ -232,7 +243,7 @@ win.update()
 
 channel = pygame.mixer.Channel(0)
 
-music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
+music = pygame.mixer.Sound("terran_one.mp3")
 
 channel.play(music)
 
@@ -262,8 +273,16 @@ while True:
 
         objects['marines'][marine.id] = []
 
-        for rec_id in borders:
-            canvas.lift(rec_id)
+        print(len(marines))
+
+    sorted_marines = sorted(marines, key=lambda m: m.coords[1])
+        
+    for m in sorted_marines:
+        canvas.lift(m.id)
+
+    for rec_id in borders:
+        canvas.lift(rec_id)
+    
 
     time.sleep(0.01)
     win.update()
