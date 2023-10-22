@@ -5,7 +5,7 @@ import time
 import os
 import platform
 
-import secrets
+import random
 
 import pygame
 
@@ -89,7 +89,7 @@ class Marine:
         self.shot_frame = 0
         
         self.pause = 0
-        self.pause_end = 2
+        # self.pause_end = 2
 
         self.state = None
 
@@ -98,12 +98,6 @@ class Marine:
         self.pushed_lasers = 0
 
     def move(self, v_move=None):
-
-        if self.pause == self.pause_end:
-            self.pause = 0
-        else:
-            self.pause += 1
-            return
 
         self.frame += 1
         frame_image = self.marine_move[self.frame]
@@ -208,49 +202,31 @@ floor = tk.PhotoImage(file="floor.png")
 canvas = tk.Canvas(win, bg='black')
 canvas.pack(expand=True, fill=tk.BOTH)
 
-canvas.create_image((win.winfo_screenwidth()-2000)//2, (win.winfo_screenheight()-1200)//2, image=floor, anchor='nw')
+x_start = (win.winfo_screenwidth()-2000)//2
+y_start = (win.winfo_screenheight()-1200)//2
+x_end = x_start + 2000
+y_end = y_start + 1200
 
-frames = [canvas.create_rectangle(0, 0, (win.winfo_screenwidth()-2000)//2, win.winfo_screenheight(), fill='black'),
-          canvas.create_rectangle(0, 0, win.winfo_screenwidth(), (win.winfo_screenheight()-1200)//2, fill='black'),
-          canvas.create_rectangle(2000+((win.winfo_screenwidth()-2000)//2), 0, win.winfo_screenwidth(), win.winfo_screenheight(), fill='black'),
-          canvas.create_rectangle(0, 1200+((win.winfo_screenheight()-1200)//2), win.winfo_screenwidth(), win.winfo_screenheight(), fill='black')]
+canvas.create_image(x_start, y_start, image=floor, anchor='nw')
+
+borders = [canvas.create_rectangle(0, 0, x_start, win.winfo_screenheight(), fill='black'),
+          canvas.create_rectangle(0, 0, win.winfo_screenwidth(), y_start, fill='black'),
+          canvas.create_rectangle(2000+x_start, 0, win.winfo_screenwidth(), win.winfo_screenheight(), fill='black'),
+          canvas.create_rectangle(0, 1200+y_start, win.winfo_screenwidth(), win.winfo_screenheight(), fill='black')]
 
 objects = {"marines":{}}
 
 marines = []
 
-marine = Marine(677, 1220, canvas=canvas, move_images=marine_move, shot_images=marine_shot)
+possible_x = list(range(x_start, x_start+800))
+possible_y = list(range(y_start+50, y_end-50))
 
-marines.append(marine)
+for _ in range(15):
+    marine = Marine(random.choice(possible_x), random.choice(possible_y), canvas=canvas, move_images=marine_move, shot_images=marine_shot)
 
-objects['marines'][marine.id] = []
+    marines.append(marine)
 
-marine = Marine(357, 740, canvas=canvas, move_images=marine_move, shot_images=marine_shot)
-
-marines.append(marine)
-
-objects['marines'][marine.id] = []
-
-marine = Marine(357, 540, canvas=canvas, move_images=marine_move, shot_images=marine_shot)
-
-marines.append(marine)
-
-objects['marines'][marine.id] = []
-
-marine = Marine(987, 940, canvas=canvas, move_images=marine_move, shot_images=marine_shot)
-
-marines.append(marine)
-
-objects['marines'][marine.id] = []
-
-marine = Marine(857, 540, canvas=canvas, move_images=marine_move, shot_images=marine_shot)
-
-marines.append(marine)
-
-objects['marines'][marine.id] = []
-
-for rec_id in frames:
-    canvas.lift(rec_id)
+    objects['marines'][marine.id] = []
 
 win.update()
 
@@ -260,14 +236,17 @@ music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
 
 channel.play(music)
 
+for rec_id in borders:
+    canvas.lift(rec_id)
+
 while True:
-    for marine in marines:
+    for marine in marines[:]:
         marine: Marine
         if marine.state == None:
-            marine.animate(v_move=secrets.choice(["up", "down", None])) # type: ignore
+            marine.animate(v_move=random.choice(["up", "down", None])) # type: ignore
         elif marine.state == "shooting":
             marine.animate()
-        if marine.frame == 0 and secrets.choice([1, 0, 0, 0, 0, 0, 0, 0]) == 1:
+        if marine.frame == 0 and random.choice([1, 0, 0, 0, 0, 0, 0, 0]) == 1:
             marine.start_shooting()
 
         
@@ -275,6 +254,16 @@ while True:
         for shotlaser in shotlasers:
             if isinstance(shotlaser, ShotLaser):
                 shotlaser.move()
+    
+    if random.choice([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == 1:
+        marine = Marine(x_start-120, random.choice(possible_y), canvas=canvas, move_images=marine_move, shot_images=marine_shot)
+
+        marines.append(marine)
+
+        objects['marines'][marine.id] = []
+
+        for rec_id in borders:
+            canvas.lift(rec_id)
 
     time.sleep(0.01)
     win.update()
