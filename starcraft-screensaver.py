@@ -214,16 +214,30 @@ marines_count = canvas.create_text(30, 30, text="Marines: 0", anchor='nw', fill=
 lasers_count = canvas.create_text(30, 60, text="Shot Lasers: 0", anchor='nw', fill='white', font=(None, 13))
 fps = canvas.create_text(30, 90, text="FPS: 0", anchor='nw', fill='white', font=(None, 13))
 
+stats_on = False
+
 def show_stats():
+    global stats_on
+
     canvas.itemconfigure(marines_count, state='normal')
     canvas.itemconfigure(lasers_count, state='normal')
     canvas.itemconfigure(fps, state='normal')
+
+    stats_on = True
+
     win.bind("<F2>", lambda event: hide_stats())  
 
+
+
 def hide_stats():
+    global stats_on
+
     canvas.itemconfigure(marines_count, state='hidden')
     canvas.itemconfigure(lasers_count, state='hidden')
     canvas.itemconfigure(fps, state='hidden')
+
+    stats_on = False
+
     win.bind("<F2>", lambda event: show_stats())  
 
 hide_stats()  
@@ -258,7 +272,7 @@ win.update()
 
 channel = pygame.mixer.Channel(0)
 
-music = pygame.mixer.Sound("terran_one.mp3")
+music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
 
 channel.play(music)
 
@@ -285,7 +299,7 @@ while True:
                 shotlaser.move()
                 lc += 1
     
-    if random.choice([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == 1:
+    if random.choice([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == 1 and len(marines):
         marine = Marine(x_start-120, random.choice(possible_y), canvas=canvas, move_images=marine_move, shot_images=marine_shot)
 
         marines.append(marine)
@@ -300,22 +314,23 @@ while True:
     for rec_id in borders:
         canvas.lift(rec_id)
     
-    canvas.lift(marines_count)
-    canvas.lift(lasers_count)
-    canvas.lift(fps)
+    if stats_on:
+        canvas.lift(marines_count)
+        canvas.lift(lasers_count)
+        canvas.lift(fps)
 
-    canvas.itemconfig(marines_count, text=f"Marines: {len(marines)}")
-    canvas.itemconfig(lasers_count, text=f"Lasers: {lc}")
+        canvas.itemconfig(marines_count, text=f"Marines: {len(marines)}")
+        canvas.itemconfig(lasers_count, text=f"Lasers: {lc}")
 
-    current_time = time.time()
-    dt = current_time - last_time
-    fr_count += 1
+        current_time = time.time()
+        dt = current_time - last_time
+        fr_count += 1
 
-    if dt >= 0.3:
-        fps_count = fr_count / dt
-        canvas.itemconfig(fps, text=f"FPS: {round(fps_count)}")
-        fr_count = 0
-        last_time = current_time
+        if dt >= 0.3:
+            fps_count = fr_count / dt
+            canvas.itemconfig(fps, text=f"FPS: {round(fps_count)}")
+            fr_count = 0
+            last_time = current_time
 
     time.sleep(0.01)
     win.update()
