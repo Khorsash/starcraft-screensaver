@@ -39,6 +39,7 @@ class ShotLaser:
         self.id = self.canvas.create_image(coords[0], coords[1], image=self.shot_laser, anchor='nw')
 
         self.x = coords[0]
+        self.y = coords[1] + 50
         self.x_end = x_end
 
         self.frame = 0
@@ -54,7 +55,13 @@ class ShotLaser:
                 self.canvas.move(self.id, 2, 0)
             else:
                 self.state = "free"
-        elif self.x_end > (self.x + 25):
+        elif self.x_end > (self.x + 25) and self.state != "dead":
+            for marine in marines:
+                if (self.x+25) in list(range(marine.coords[0], marine.coords[0]+100)) and self.y in list(range(marine.coords[1]+45, marine.coords[1]+56)):
+                    self.state = "dead"
+                    marine.state = "dead"
+                    marine.animate = marine.death_animation
+                    break
             self.x += 25
             self.canvas.move(self.id, 25, 0)
         else:
@@ -74,12 +81,13 @@ class ShotLaser:
 
 
 class Marine:
-    def __init__(self, *coords, canvas: tk.Canvas, move_images: list, shot_images: list):
+    def __init__(self, *coords, canvas: tk.Canvas, move_images: list, shot_images: list, death_images: list):
 
         self.coords = list(coords)
         self.canvas = canvas
         self.marine_move = move_images
         self.marine_shot = shot_images
+        self.marine_death = death_images
         self.id = self.canvas.create_image(coords[0], coords[1], image=self.marine_move[0], anchor='nw')
 
         self.highest_speed = 6
@@ -87,6 +95,7 @@ class Marine:
 
         self.frame = 0
         self.shot_frame = 0
+        self.death_frame = 0
 
         self.state = None
 
@@ -188,11 +197,22 @@ class Marine:
             self.state = None
             self.animate = self.move
 
-    def destroy(self):
+    def death_animation(self):
+        try:
+            frame_image = self.marine_death[self.death_frame]
+            self.canvas.itemconfig(self.id, image=frame_image)
+        except IndexError:
+            self.destroy(leave_body=True)
+            return
+
+        self.death_frame += 1
+
+    def destroy(self, leave_body=False):
         for shotlaser in objects['marines'][self.id]:
             shotlaser.destroy()
 
-        self.canvas.delete(self.id)
+        if not leave_body:
+            self.canvas.delete(self.id)
 
         marines.remove(self)
         del objects['marines'][self.id]
@@ -204,6 +224,7 @@ win.wm_attributes('-fullscreen', True)
 
 marine_move = [tk.PhotoImage(file=os.path.join('marine', f'marine{i}.png')) for i in range(1, 14)]
 marine_shot = [tk.PhotoImage(file=os.path.join('marine_shot', f'marine_shot{i}.png')) for i in range(1, 12)]
+marine_death = [tk.PhotoImage(file=os.path.join('marine_death', f'marine_death{i}.png')) for i in range(1, 13)]
 
 floor = tk.PhotoImage(file="floor.png")
 
@@ -262,7 +283,10 @@ possible_x = list(range(x_start, x_start+800))
 possible_y = list(range(y_start+50, y_end-50))
 
 for _ in range(15):
-    marine = Marine(random.choice(possible_x), random.choice(possible_y), canvas=canvas, move_images=marine_move, shot_images=marine_shot)
+    marine = Marine(random.choice(possible_x),
+                     random.choice(possible_y),
+                       canvas=canvas, move_images=marine_move,
+                         shot_images=marine_shot, death_images=marine_death)
 
     marines.append(marine)
 
@@ -270,11 +294,11 @@ for _ in range(15):
 
 win.update()
 
-channel = pygame.mixer.Channel(0)
+#channel = pygame.mixer.Channel(0)
 
-music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
+#music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
 
-channel.play(music)
+#channel.play(music)
 
 for rec_id in borders:
     canvas.lift(rec_id)
@@ -289,7 +313,9 @@ while True:
             marine.animate(v_move=random.choice(["up", "down", None])) # type: ignore
         elif marine.state == "shooting":
             marine.animate()
-        if marine.frame == 0 and random.choice([1, 0, 0, 0, 0, 0, 0, 0]) == 1:
+        else:
+            marine.animate()
+        if marine.frame == 0 and random.choice([1, 0, 0, 0, 0, 0, 0, 0]) == 1 and marine.state != "dead":
             marine.start_shooting()
 
     lc = 0
@@ -299,8 +325,11 @@ while True:
                 shotlaser.move()
                 lc += 1
     
-    if random.choice([1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == 1 and len(marines):
-        marine = Marine(x_start-120, random.choice(possible_y), canvas=canvas, move_images=marine_move, shot_images=marine_shot)
+    if random.choice([1, 0, 0, 0, 0, 0, 0, 0, 0, 0]) == 1 and len(marines):
+        marine = Marine(x_start-120,
+                         random.choice(possible_y),
+                           canvas=canvas, move_images=marine_move,
+                             shot_images=marine_shot, death_images=marine_death)
 
         marines.append(marine)
 
