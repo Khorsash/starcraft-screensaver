@@ -64,7 +64,7 @@ class ShotLaser:
                     break
             self.x += 25
             self.canvas.move(self.id, 25, 0)
-        else:
+        elif self.state != "dead":
             if self.frame == len(self.laser_collision):
                 self.destroy()
                 return
@@ -213,6 +213,8 @@ class Marine:
 
         if not leave_body:
             self.canvas.delete(self.id)
+        else:
+            win.after(20*1000, lambda event=None: self.canvas.delete(self.id))
 
         marines.remove(self)
         del objects['marines'][self.id]
@@ -294,11 +296,11 @@ for _ in range(15):
 
 win.update()
 
-#channel = pygame.mixer.Channel(0)
+channel = pygame.mixer.Channel(0)
 
-#music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
+music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
 
-#channel.play(music)
+channel.play(music)
 
 for rec_id in borders:
     canvas.lift(rec_id)
