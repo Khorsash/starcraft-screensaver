@@ -7,11 +7,6 @@ import platform
 
 import random
 
-import pygame
-
-
-pygame.init()
-
 
 if platform.system() == 'Windows':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -57,7 +52,7 @@ class ShotLaser:
                 self.state = "free"
         elif self.x_end > (self.x + 25) and self.state != "dead":
             for marine in marines:
-                if (self.x+25) in list(range(marine.coords[0], marine.coords[0]+100)) and self.y in list(range(marine.coords[1]+45, marine.coords[1]+56)):
+                if (self.x+25) in range(marine.coords[0], marine.coords[0]+100) and self.y in range(marine.coords[1]+45, marine.coords[1]+56):
                     self.state = "dead"
                     marine.state = "dead"
                     marine.animate = marine.death_animation
@@ -296,12 +291,6 @@ for _ in range(15):
 
 win.update()
 
-channel = pygame.mixer.Channel(0)
-
-music = pygame.mixer.Sound("proshanie_slavyanki.mp3")
-
-channel.play(music)
-
 for rec_id in borders:
     canvas.lift(rec_id)
 
@@ -363,5 +352,5 @@ while True:
             fr_count = 0
             last_time = current_time
 
-    time.sleep(0.01)
+    time.sleep(0.001)
     win.update()
