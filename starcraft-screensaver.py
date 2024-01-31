@@ -306,7 +306,7 @@ while True:
             marine.animate()
         else:
             marine.animate()
-        if marine.frame == 0 and random.choice([1, 0, 0, 0, 0, 0, 0, 0]) == 1 and marine.state != "dead":
+        if marine.frame == 0 and random.choice(list(range(0, 10))) == 1 and marine.state != "dead":
             marine.start_shooting()
 
     lc = 0
